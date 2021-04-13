@@ -34,7 +34,7 @@ class Calculator: ObservableObject {
         } else if let value = Double(lable) {
             numberPressed(value: value)
         } else {
-            operatorPressed(op: Operator())
+            operatorPressed(op: Operator(lable))
         }
     }
     
@@ -55,8 +55,42 @@ class Calculator: ObservableObject {
         decimalPlace = 0
     }
     
+    func checkForDivsion() -> Bool {
+        
+        if currentOp!.isDivision && (currentNumber == nil && previousNumber == 0 || currentNumber == 0) {
+            displayValue = "Error"
+            reset()
+            return true
+        }
+        return false
+        
+    }
+    
     func equalsClicked() {
         
+        if currentOp != nil {
+            
+            decimalPlace = 0
+            
+            if checkForDivsion() { return }
+            
+            if currentNumber != nil || previousNumber != nil {
+                
+                let total = currentOp!.op(previousNumber ?? currentNumber!, currentNumber ?? previousNumber!)
+                
+                if currentNumber == nil {
+                    currentNumber = previousNumber
+                }
+                
+                previousNumber = total
+                
+                equaled = true
+
+                setDisplayValue(number: total)
+
+            }
+                        
+        }
     }
     
     func decimalClicked() {
@@ -86,6 +120,29 @@ class Calculator: ObservableObject {
     
     func operatorPressed(op: Operator) {
         
+        decimalPlace = 0
+        
+        if equaled {
+            currentNumber = nil
+            equaled = false
+        }
+        
+        if currentNumber != nil && previousNumber != nil {
+            
+            if checkForDivsion() { return }
+            
+            let total = currentOp!.op(previousNumber!, currentNumber!)
+            previousNumber = total
+            currentNumber = nil
+            
+            setDisplayValue(number: total)
+            
+        } else if previousNumber == nil {
+            previousNumber = currentNumber
+            currentNumber = nil
+        }
+        
+        currentOp = op
     }
     
     
